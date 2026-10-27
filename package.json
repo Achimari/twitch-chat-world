@@ -1,0 +1,13 @@
+{
+  "name": "twitch-chat-world",
+  "version": "1.0.0",
+  "description": "Interactive Twitch chat world overlay for OBS",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js --demo",
+    "test": "node test.js"
+  }
+}

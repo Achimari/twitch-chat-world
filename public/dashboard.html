@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat World Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap">
+<style>
+  :root { --bg:#0f1117; --panel:#171a23; --line:#262a36; --text:#e6e8ef; --mute:#8b90a3; --acc:#9146ff; --ok:#2ed573; --warn:#ffa502; --bad:#ff4757; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; }
+  h1, h2 { font-family: "Pixelify Sans", system-ui, sans-serif; margin: 0; font-weight: 700; }
+  h1 { font-size: 22px; } h2 { font-size: 16px; margin-bottom: 12px; color: #c9b6ff; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+  header .grow { flex: 1; }
+  main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); gap: 16px; padding: 16px 20px; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .col > section:last-child { margin-bottom: 0; }
+  button { background: #262a36; color: var(--text); border: 1px solid #353a4a; border-radius: 6px; padding: 7px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--acc); }
+  button.primary { background: var(--acc); border-color: var(--acc); color: #fff; }
+  button.danger { color: var(--bad); }
+  button.small { padding: 3px 8px; font-size: 12px; }
+  input, select { background: #0f1117; color: var(--text); border: 1px solid #353a4a; border-radius: 6px; padding: 6px 8px; font: inherit; }
+  input[type=number] { width: 90px; }
+  input[type=range] { width: 100%; accent-color: var(--acc); }
+  input[type=checkbox] { accent-color: var(--acc); width: 16px; height: 16px; }
+  .pill { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; background: #262a36; }
+  .pill.connected { background: rgba(46,213,115,.15); color: var(--ok); }
+  .pill.connecting, .pill.reconnecting { background: rgba(255,165,2,.15); color: var(--warn); }
+  .pill.off { color: var(--mute); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .preview { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; border: 1px solid var(--line);
+    background: repeating-conic-gradient(#2a2e3a 0 25%, #1f222c 0 50%) 0 0 / 24px 24px; }
+  .preview.dark { background: #000; } .preview.light { background: #cfd8e3; }
+  .preview iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; pointer-events: none; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { color: var(--mute); font-size: 12px; display: flex; justify-content: space-between; }
+  .field.check { flex-direction: row; align-items: center; gap: 8px; }
+  .field.check label { color: var(--text); font-size: 14px; }
+  .users { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow: auto; }
+  .user { display: flex; align-items: center; gap: 6px; background: #0f1117; border: 1px solid var(--line); border-radius: 99px; padding: 3px 4px 3px 10px; }
+  .user b { font-weight: 600; }
+  .user button { border-radius: 99px; padding: 0 7px; line-height: 18px; }
+  .muted { color: var(--mute); }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  th { color: var(--mute); font-weight: 500; font-size: 12px; }
+  td code { color: #c9b6ff; }
+  .cmds { max-height: 520px; overflow: auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  textarea { width: 100%; background: #0f1117; color: var(--text); border: 1px solid #353a4a; border-radius: 6px; padding: 6px 8px; font: 13px/1.5 ui-monospace, monospace; resize: vertical; }
+  #heard { min-height: 1.4em; margin: 10px 0; }
+  #heard b { color: var(--ok); }
+  code.url { background: #0f1117; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Chat World</h1>
+  <span id="status" class="pill off">off</span>
+  <div class="row">
+    <span class="muted">twitch.tv/</span><input id="channel" size="14" aria-label="Channel">
+    <button id="connect"></button>
+  </div>
+  <label class="row"><input type="checkbox" data-path="demo"> Demo mode</label>
+  <div class="grow"></div>
+  <div class="row"><span class="muted">OBS URL</span><code class="url" id="obsurl"></code><button id="copy" class="small">Copy</button></div>
+</header>
+
+<main>
+  <div class="col">
+    <section>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Live preview</h2>
+        <div class="row"><span class="muted">Backdrop</span>
+          <select id="backdrop"><option value="">checker</option><option value="dark">dark</option><option value="light">light</option></select>
+          <button class="small" id="reload">Reload</button>
+        </div>
+      </div>
+      <div class="preview" id="preview"><iframe id="frame" src="/overlay.html" title="Overlay preview"></iframe></div>
+    </section>
+
+    <section>
+      <h2>Test chat</h2>
+      <form id="chat" class="row">
+        <input id="as" value="achimari" size="12" aria-label="Username">
+        <input id="msg" placeholder="!dance  or  !hug @someone  or  hello" style="flex:1;min-width:180px" aria-label="Message">
+        <button class="primary">Send</button>
+      </form>
+      <div class="chips" id="quick"></div>
+    </section>
+
+    <section>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Voice memes</h2>
+        <div class="row"><select id="preset" aria-label="Load a preset list"><option value="">Load preset…</option></select><span class="muted">Language</span><input data-path="voice.lang" size="7" aria-label="Speech language"><button id="listen" class="primary">Start listening</button></div>
+      </div>
+      <div id="heard" class="muted">Say a phrase on stream and its meme pops up. Keep this tab open while you stream (Chrome or Edge).</div>
+      <div class="field"><label>One per line: <code>phrase=meme</code>. A meme is text/emoji, a file in public/memes/ (png, gif, jpg, webp, mp4, webm, mp3), or an event name.</label>
+        <textarea rows="7" data-path="voice.triggers" data-list="lines" aria-label="Voice triggers"></textarea></div>
+      <div class="chips" id="memeBtns"></div>
+    </section>
+
+    <section>
+      <h2>Special events</h2>
+      <div class="row" id="eventBtns"></div>
+      <div class="grid2" style="margin-top:14px" id="eventCfg"></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Characters <span class="muted" id="count"></span></h2>
+        <button class="small danger" id="clear">Remove all</button>
+      </div>
+      <div class="users" id="users"></div>
+    </section>
+
+    <section>
+      <h2>Settings</h2>
+      <div class="grid2" id="settings"></div>
+      <div class="field" style="margin-top:12px"><label>Ignored users (bots), comma separated</label><input data-path="ignoreUsers" data-list></div>
+    </section>
+
+    <section>
+      <h2>Commands</h2>
+      <div class="cmds"><table><thead><tr><th>On</th><th>Command</th><th>Cooldown (s)</th><th></th></tr></thead><tbody id="cmds"></tbody></table></div>
+    </section>
+  </div>
+</main>
+
+<script>
+  let S = null;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const post = (route, body = {}) => fetch('/api/' + route, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const get = (path) => path.split('.').reduce((o, k) => o?.[k], S.cfg);
+  const patchFor = (path, v) => path.split('.').reduceRight((acc, k) => ({ [k]: acc }), v);
+
+  const SETTINGS = [
+    ['characterSize', 'Character size', 'range', 1, 8, 1],
+    ['animationSpeed', 'Animation speed', 'range', 0.25, 3, 0.25],
+    ['worldHeight', 'World height (px)', 'range', 80, 1080, 10],
+    ['bottomOffset', 'Distance from bottom (px)', 'range', 0, 900, 10],
+    ['maxCharacters', 'Max characters', 'range', 1, 150, 1],
+    ['maxParticles', 'Max particles', 'range', 0, 3000, 50],
+    ['inactiveMinutes', 'Remove inactive after (min)', 'number', 1, 240, 1],
+    ['userCooldownMs', 'Min gap between a user\'s commands (ms)', 'number', 0, 60000, 100],
+    ['environment', 'Environment', 'select'],
+    ['autoMove', 'Automatic movement', 'check'],
+    ['showBubbles', 'Show chat bubbles', 'check'],
+    ['spawnOnChat', 'Spawn on any message (off = !join only)', 'check'],
+  ];
+
+  function field([path, label, type, min, max, step]) {
+    if (type === 'check') return `<div class="field check"><input type="checkbox" id="f-${path}" data-path="${path}"><label for="f-${path}">${label}</label></div>`;
+    if (type === 'select') return `<div class="field"><label for="f-${path}">${label}</label><select id="f-${path}" data-path="${path}">${S.environments.map((e) => `<option>${e}</option>`).join('')}</select></div>`;
+    return `<div class="field"><label for="f-${path}">${label}<span data-out="${path}"></span></label><input id="f-${path}" type="${type}" min="${min}" max="${max}" step="${step}" data-path="${path}"></div>`;
+  }
+
+  function build() {
+    $('channel').value = S.cfg.channel;
+    $('settings').innerHTML = SETTINGS.map(field).join('');
+    $('eventBtns').innerHTML = S.events.map((e) => `<button data-event="${e}">${e}</button>`).join('');
+    $('eventCfg').innerHTML = [
+      field(['events.enabled', 'Random events on', 'check']),
+      '<div></div>',
+      field(['events.minSeconds', 'Min seconds between', 'number', 10, 7200, 10]),
+      field(['events.maxSeconds', 'Max seconds between', 'number', 10, 7200, 10]),
+      ...S.events.map((e) => field([`events.types.${e}`, e, 'check'])),
+    ].join('');
+    $('cmds').innerHTML = Object.entries(S.commands).map(([k, d]) => `<tr>
+      <td><input type="checkbox" data-path="commands.${k}.enabled" aria-label="Enable ${k}"></td>
+      <td><code>!${k}${d.target ? ' @user' : ''}</code><div class="muted">${esc(d.desc)}${d.global ? ' (global cooldown)' : ''}</div></td>
+      <td><input type="number" min="0" max="3600" step="1" data-path="commands.${k}.cooldown" aria-label="${k} cooldown"></td>
+      <td><button class="small" data-try="${k}">Try</button></td></tr>`).join('');
+    renderMemes();
+    $('preset').innerHTML = '<option value="">Load preset…</option>' + Object.keys(S.voicePresets).map((k) => `<option>${k}</option>`).join('');
+    $('quick').innerHTML = Object.keys(S.commands).filter((k) => k !== 'leave').map((k) => `<button class="small" data-try="${k}">!${k}</button>`).join('');
+    fill();
+    renderUsers(); renderStatus();
+  }
+
+  // Push config values into inputs (skipping whatever the user is editing).
+  function fill() {
+    for (const el of document.querySelectorAll('[data-path]')) {
+      if (el === document.activeElement) continue;
+      const v = get(el.dataset.path);
+      if (el.type === 'checkbox') el.checked = !!v;
+      else el.value = el.hasAttribute('data-list') ? v.join(el.dataset.list === 'lines' ? '\n' : ', ') : v;
+    }
+    for (const o of document.querySelectorAll('[data-out]')) o.textContent = get(o.dataset.out);
+    $('connect').textContent = S.cfg.twitchEnabled ? 'Disconnect' : 'Connect';
+    $('connect').className = S.cfg.twitchEnabled ? '' : 'primary';
+  }
+
+  function renderStatus() { $('status').textContent = S.twitch; $('status').className = 'pill ' + S.twitch; }
+  function renderUsers() {
+    $('count').textContent = `${S.users.length} / ${S.cfg.maxCharacters}`;
+    $('users').innerHTML = S.users.length
+      ? S.users.map((u) => `<span class="user"><b style="color:${u.color || '#c9b6ff'}">${esc(u.name)}</b><button class="small danger" data-remove="${esc(u.login)}" aria-label="Remove ${esc(u.name)}">×</button></span>`).join('')
+      : '<span class="muted">Nobody yet. Chat in your channel, turn on demo mode, or use Test chat.</span>';
+  }
+
+  document.addEventListener('change', (e) => {
+    const el = e.target, path = el.dataset.path;
+    if (!path) return;
+    let v = el.type === 'checkbox' ? el.checked : el.type === 'number' || el.type === 'range' ? Number(el.value) : el.value;
+    if (el.hasAttribute('data-list')) v = v.split(el.dataset.list === 'lines' ? '\n' : ',').map((s) => s.trim()).filter(Boolean);
+    post('config', patchFor(path, v));
+  });
+  document.addEventListener('input', (e) => { const o = document.querySelector(`[data-out="${e.target.dataset.path}"]`); if (o) o.textContent = e.target.value; });
+  document.addEventListener('click', (e) => {
+    const d = e.target.dataset;
+    if (d.event) post('event', { name: d.event });
+    if (d.meme) post('meme', { value: d.meme });
+    if (d.remove) post('remove', { login: d.remove });
+    if (d.try) {
+      const others = S.users.map((u) => u.login).filter((l) => l !== $('as').value.toLowerCase());
+      const tgt = S.commands[d.try].target ? ' @' + (others[Math.floor(Math.random() * others.length)] || 'nobody') : '';
+      const joined = S.users.some((u) => u.login === $('as').value.toLowerCase()) ? Promise.resolve() : post('chat', { login: $('as').value, text: '!join' });
+      joined.then(() => post('chat', { login: $('as').value, text: `!${d.try}${tgt}` }));
+    }
+  });
+  $('chat').addEventListener('submit', (e) => { e.preventDefault(); post('chat', { login: $('as').value, text: $('msg').value }); $('msg').value = ''; });
+  $('connect').onclick = () => post('config', { twitchEnabled: !S.cfg.twitchEnabled });
+  $('channel').onchange = (e) => post('config', { channel: e.target.value, twitchEnabled: true });
+  $('clear').onclick = () => confirm('Remove every character?') && post('clear');
+  $('preset').onchange = (e) => {
+    const p = S.voicePresets[e.target.value];
+    if (p && confirm(`Replace your voice list with the ${e.target.value} preset?`)) post('config', { voice: p });
+    e.target.value = '';
+  };
+  $('reload').onclick = () => $('frame').contentWindow.location.reload();
+  $('backdrop').onchange = (e) => { $('preview').className = 'preview ' + e.target.value; };
+  $('obsurl').textContent = location.origin + '/overlay.html';
+  $('copy').onclick = () => navigator.clipboard.writeText(location.origin + '/overlay.html').then(() => { $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy', 1200); });
+
+  new ResizeObserver(([e]) => { $('frame').style.transform = `scale(${e.contentRect.width / 1920})`; }).observe($('preview'));
+
+  // ---------- voice memes (Web Speech API: Chrome/Edge send the audio to their speech service) ----------
+  const triggers = () => S.cfg.voice.triggers.map((t) => t.split('=')).filter(([p, m]) => p?.trim() && m?.trim()).map(([p, ...m]) => [p.trim(), m.join('=').trim()]);
+  function renderMemes() {
+    $('memeBtns').innerHTML = triggers().map(([p, m]) => `<button class="small" data-meme="${esc(m)}" title="${esc(m)}">“${esc(p)}”</button>`).join('');
+  }
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, session = 0;
+  const fired = new Set(); // "session:resultIndex:phrase" so one sentence fires each meme once
+  $('listen').onclick = () => {
+    if (!Rec) return $('heard').textContent = 'This browser has no speech recognition. Open the dashboard in Chrome or Edge.';
+    if (rec) { const r = rec; rec = null; r.stop(); $('listen').textContent = 'Start listening'; $('listen').className = 'primary'; return; }
+    rec = new Rec();
+    Object.assign(rec, { continuous: true, interimResults: true, lang: S.cfg.voice.lang });
+    rec.onresult = (e) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const said = e.results[i][0].transcript.toLowerCase().replaceAll('ё', 'е');
+        $('heard').innerHTML = 'Heard: ' + esc(said);
+        for (const [p, m] of triggers()) {
+          const key = `${session}:${i}:${p}`;
+          if (said.includes(p.replaceAll('ё', 'е')) && !fired.has(key)) { fired.add(key); post('meme', { value: m }); $('heard').innerHTML += ` → <b>${esc(m)}</b>`; }
+        }
+      }
+    };
+    rec.onerror = (e) => { if (e.error === 'not-allowed') { rec = null; $('heard').textContent = 'Microphone blocked. Allow it in the address bar and try again.'; $('listen').textContent = 'Start listening'; } };
+    // Chrome stops after silence or ~1 min; restart while we still want to listen.
+    rec.onend = () => { if (rec) { session++; fired.clear(); rec.lang = S.cfg.voice.lang; rec.start(); } };
+    rec.start();
+    $('listen').textContent = 'Stop listening'; $('listen').className = '';
+  };
+
+  new EventSource('/events').onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.t === 'state') { S = m; build(); return; }
+    if (!S) return;
+    if (m.t === 'config') { S.cfg = m.cfg; fill(); renderUsers(); renderMemes(); if (rec && rec.lang !== m.cfg.voice.lang) rec.stop(); } // onend restarts in the new language
+    else if (m.t === 'status') { S.twitch = m.twitch; renderStatus(); }
+    else if (m.t === 'spawn') { S.users = S.users.filter((u) => u.login !== m.user.login).concat(m.user); renderUsers(); }
+    else if (m.t === 'despawn') { S.users = S.users.filter((u) => u.login !== m.login); renderUsers(); }
+  };
+</script>
+</body>
+</html>

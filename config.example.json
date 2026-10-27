@@ -1,0 +1,164 @@
+{
+  "channel": "achimari",
+  "twitchEnabled": true,
+  "demo": false,
+  "host": "127.0.0.1",
+  "port": 7272,
+  "spawnOnChat": true,
+  "maxCharacters": 60,
+  "inactiveMinutes": 10,
+  "characterSize": 3,
+  "animationSpeed": 1,
+  "autoMove": true,
+  "environment": "meadow",
+  "worldHeight": 260,
+  "bottomOffset": 0,
+  "showBubbles": true,
+  "maxParticles": 800,
+  "userCooldownMs": 1500,
+  "ignoreUsers": [
+    "nightbot",
+    "streamelements",
+    "streamlabs",
+    "moobot",
+    "fossabot",
+    "wizebot",
+    "sery_bot"
+  ],
+  "events": {
+    "enabled": true,
+    "minSeconds": 180,
+    "maxSeconds": 420,
+    "types": {
+      "meteor": true,
+      "party": true,
+      "stampede": true,
+      "crown": true,
+      "confetti": true,
+      "groupjump": true
+    }
+  },
+  "commands": {
+    "join": {
+      "enabled": true,
+      "cooldown": 0
+    },
+    "leave": {
+      "enabled": true,
+      "cooldown": 0
+    },
+    "jump": {
+      "enabled": true,
+      "cooldown": 2
+    },
+    "dance": {
+      "enabled": true,
+      "cooldown": 4
+    },
+    "attack": {
+      "enabled": true,
+      "cooldown": 10
+    },
+    "hug": {
+      "enabled": true,
+      "cooldown": 6
+    },
+    "wave": {
+      "enabled": true,
+      "cooldown": 3
+    },
+    "sit": {
+      "enabled": true,
+      "cooldown": 3
+    },
+    "sleep": {
+      "enabled": true,
+      "cooldown": 3
+    },
+    "run": {
+      "enabled": true,
+      "cooldown": 5
+    },
+    "follow": {
+      "enabled": true,
+      "cooldown": 5
+    },
+    "fight": {
+      "enabled": true,
+      "cooldown": 15
+    },
+    "random": {
+      "enabled": true,
+      "cooldown": 3
+    },
+    "explode": {
+      "enabled": true,
+      "cooldown": 15
+    },
+    "spin": {
+      "enabled": true,
+      "cooldown": 4
+    },
+    "flip": {
+      "enabled": true,
+      "cooldown": 3
+    },
+    "love": {
+      "enabled": true,
+      "cooldown": 6
+    },
+    "duel": {
+      "enabled": true,
+      "cooldown": 20
+    },
+    "highfive": {
+      "enabled": true,
+      "cooldown": 5
+    },
+    "fireball": {
+      "enabled": true,
+      "cooldown": 12
+    },
+    "party": {
+      "enabled": true,
+      "cooldown": 120
+    },
+    "grow": {
+      "enabled": true,
+      "cooldown": 20
+    },
+    "shrink": {
+      "enabled": true,
+      "cooldown": 20
+    },
+    "ghost": {
+      "enabled": true,
+      "cooldown": 20
+    },
+    "cloud": {
+      "enabled": true,
+      "cooldown": 20
+    },
+    "kick": {
+      "enabled": true,
+      "cooldown": 5
+    },
+    "bounce": {
+      "enabled": true,
+      "cooldown": 5
+    },
+    "newlook": {
+      "enabled": true,
+      "cooldown": 30
+    }
+  },
+  "voice": {
+    "lang": "en-US",
+    "triggers": [
+      "let's go=letsgo.gif",
+      "bruh=bruh.gif",
+      "no way=shocked.gif",
+      "...see public/commands.js VOICE_PRESETS"
+    ]
+  }
+}
