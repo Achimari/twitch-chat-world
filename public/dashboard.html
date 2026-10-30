@@ -55,6 +55,10 @@
   textarea { width: 100%; background: #0f1117; color: var(--text); border: 1px solid #353a4a; border-radius: 6px; padding: 6px 8px; font: 13px/1.5 ui-monospace, monospace; resize: vertical; }
   #heard { min-height: 1.4em; margin: 10px 0; }
   #heard b { color: var(--ok); }
+  .status { background: #0f1117; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .status b.ready { color: var(--ok); } .status b.blocked, .status b.unsupported { color: var(--bad); } .status b.silent, .status b.off { color: var(--mute); }
+  #notice { color: var(--warn); min-height: 1.4em; margin-top: 6px; }
+  p.help { color: var(--mute); font-size: 12px; margin: 10px 0 0; }
   code.url { background: #0f1117; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); }
 </style>
 </head>
@@ -115,6 +119,46 @@
   <div class="col">
     <section>
       <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Activities</h2>
+        <button class="danger" id="stopfx" title="Stop sound/media, clear effects, end the activity and pause automatic events">Stop effects</button>
+      </div>
+      <div class="row" style="margin-bottom:10px;gap:16px">
+        <label class="row"><input type="checkbox" data-path="director.sessionActive"> <b>Stream session active</b></label>
+        <label class="row"><input type="checkbox" data-path="director.enabled"> Activities on</label>
+        <label class="row"><input type="checkbox" data-path="director.betting"> Race prediction (play coins)</label>
+      </div>
+      <div class="status" id="dirStatus"></div>
+      <div id="notice"></div>
+      <div class="row" style="margin:8px 0 12px">
+        <button class="primary" data-event="ufo">Start UFO escape</button>
+        <button class="primary" data-event="race">Start goofy race</button>
+        <button id="skip">Skip / cancel</button>
+        <button id="pause"></button>
+      </div>
+      <div class="grid2" id="dirCfg"></div>
+      <p class="help" id="dirStats"></p>
+      <p class="help" id="leaders"></p>
+      <p class="help">Automatic UFO escapes run only while <b>Stream session active</b> is on (it switches off when the server restarts) or demo mode is on.
+        They wait for the gap after the previous activity, enough recent Twitch chatters (people who chatted and still have a character; demo and test-chat users don't count unless demo mode is on), and a free slot.
+        If nobody joins, the next gap grows (up to 4×). One big event runs at a time: buttons, voice triggers and <code>!party</code> are rejected while another runs, never queued.
+        Automatic activities alternate between UFO escape and the goofy race (if race prediction is on).
+        Play coins are free and session-only: 100 per viewer, no purchases or real value. They reset when you switch the stream session on, change channel or restart the server, never on an OBS refresh.</p>
+    </section>
+
+    <section>
+      <h2>Sound</h2>
+      <div class="status" id="audioOut"></div>
+      <div class="row" style="margin:10px 0">
+        <button id="testSound">Test sound on overlays</button>
+        <button id="previewSound">Preview sound: off</button>
+      </div>
+      <div class="grid2" id="audioCfg"></div>
+      <p class="help">OBS plays the sound. The preview here is silent unless you turn on <b>Preview sound</b> (a click here does not unlock OBS; they are separate browsers).
+        In OBS, tick <b>Control audio via OBS</b> on the Browser Source and check its meter while pressing <b>Test sound</b>. Only one source should make sound: add <code>?silent=1</code> to any extra overlay URL.</p>
+    </section>
+
+    <section>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
         <h2 style="margin:0">Characters <span class="muted" id="count"></span></h2>
         <button class="small danger" id="clear">Remove all</button>
       </div>
@@ -159,7 +203,7 @@
 
   function field([path, label, type, min, max, step]) {
     if (type === 'check') return `<div class="field check"><input type="checkbox" id="f-${path}" data-path="${path}"><label for="f-${path}">${label}</label></div>`;
-    if (type === 'select') return `<div class="field"><label for="f-${path}">${label}</label><select id="f-${path}" data-path="${path}">${S.environments.map((e) => `<option>${e}</option>`).join('')}</select></div>`;
+    if (type === 'select') return `<div class="field"><label for="f-${path}">${label}</label><select id="f-${path}" data-path="${path}">${(min || S.environments).map((e) => `<option>${e}</option>`).join('')}</select></div>`;
     return `<div class="field"><label for="f-${path}">${label}<span data-out="${path}"></span></label><input id="f-${path}" type="${type}" min="${min}" max="${max}" step="${step}" data-path="${path}"></div>`;
   }
 
@@ -174,6 +218,24 @@
       field(['events.maxSeconds', 'Max seconds between', 'number', 10, 7200, 10]),
       ...S.events.map((e) => field([`events.types.${e}`, e, 'check'])),
     ].join('');
+    $('dirCfg').innerHTML = [
+      ['director.minMinutes', 'Min minutes between activities', 'number', 1, 120, 0.5],
+      ['director.maxMinutes', 'Max minutes between', 'number', 1, 240, 0.5],
+      ['director.minChatters', 'Min recent chatters', 'number', 1, 50, 1],
+      ['director.recentMinutes', 'Chatter counts as recent for (min)', 'number', 1, 60, 1],
+      ['director.enrollSeconds', 'Join window (s)', 'number', 10, 120, 1],
+      ['director.hideSeconds', 'Hide window (s)', 'number', 5, 120, 1],
+      ['director.resultSeconds', 'Result shown (s)', 'number', 3, 20, 1],
+      ['director.betSeconds', 'Race betting window (s)', 'number', 15, 120, 1],
+      ['director.intensity', 'Intensity (calm = longer gaps)', 'select', S.intensities],
+      ['director.hudOffset', 'Announcement position (px, negative = higher)', 'range', -600, 600, 10],
+    ].map(field).join('');
+    $('audioCfg').innerHTML = [
+      ['audio.enabled', 'Sound on', 'check'], ['audio.maxVoices', 'Max sounds at once', 'number', 1, 16, 1],
+      ['audio.master', 'Master volume', 'range', 0, 1, 0.05], ['audio.perSecond', 'Max new sounds per second', 'number', 1, 30, 1],
+      ['audio.action', 'Actions', 'range', 0, 1, 0.05], ['audio.event', 'Events', 'range', 0, 1, 0.05],
+      ['audio.media', 'Meme media (mp3/video)', 'range', 0, 1, 0.05],
+    ].map(field).join('');
     $('cmds').innerHTML = Object.entries(S.commands).map(([k, d]) => `<tr>
       <td><input type="checkbox" data-path="commands.${k}.enabled" aria-label="Enable ${k}"></td>
       <td><code>!${k}${d.target ? ' @user' : ''}</code><div class="muted">${esc(d.desc)}${d.global ? ' (global cooldown)' : ''}</div></td>
@@ -183,7 +245,7 @@
     $('preset').innerHTML = '<option value="">Load preset…</option>' + Object.keys(S.voicePresets).map((k) => `<option>${k}</option>`).join('');
     $('quick').innerHTML = Object.keys(S.commands).filter((k) => k !== 'leave').map((k) => `<button class="small" data-try="${k}">!${k}</button>`).join('');
     fill();
-    renderUsers(); renderStatus();
+    renderUsers(); renderStatus(); renderDirector(); renderOutputs();
   }
 
   // Push config values into inputs (skipping whatever the user is editing).
@@ -195,9 +257,41 @@
       else el.value = el.hasAttribute('data-list') ? v.join(el.dataset.list === 'lines' ? '\n' : ', ') : v;
     }
     for (const o of document.querySelectorAll('[data-out]')) o.textContent = get(o.dataset.out);
+    $('pause').textContent = S.cfg.director.paused ? 'Resume automatic events' : 'Pause automatic events';
+    $('pause').className = S.cfg.director.paused ? 'primary' : '';
     $('connect').textContent = S.cfg.twitchEnabled ? 'Disconnect' : 'Connect';
     $('connect').className = S.cfg.twitchEnabled ? '' : 'primary';
   }
+
+  const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const PHASE = { ufo: { enroll: 'inviting (!play)', active: 'hiding (!hide)', result: 'showing result' }, race: { enroll: 'betting open (!bet)', active: 'racing (bets locked)', result: 'showing payouts' } };
+  const NAME = { ufo: 'UFO escape', race: 'Goofy race' };
+  function renderDirector() {
+    const d = S.director, ev = S.ev, now = Date.now() + S.offset;
+    let html;
+    if (ev) html = `<b>Running: ${NAME[ev.type]}</b> · ${PHASE[ev.type][ev.phase]} · ${mmss(ev.endsAt - now)} left · ` + (ev.type === 'race'
+      ? `${ev.bets.length} bets, pool ${ev.bets.reduce((a, b) => a + b.stake, 0)}`
+      : `${ev.players.length} joined${ev.phase === 'enroll' ? '' : `, ${ev.hidden.length} hidden`}`);
+    else if (d.reason) html = `<b>Waiting:</b> ${esc(d.reason)}`;
+    else html = d.nextAt > now ? `Next activity in <b>${mmss(d.nextAt - now)}</b>` : 'Starting an activity…';
+    if (!ev && d.running) html += ` · ${esc(d.running)}`;
+    $('dirStatus').innerHTML = html;
+    const st = d.stats;
+    $('leaders').textContent = d.leaderboard.length ? 'Play-coin leaderboard: ' + d.leaderboard.map((x, i) => `${i + 1}. ${x.name} ${x.coins}`).join(' · ') : '';
+    $('dirStats').textContent = `This session: ${st.invites} invitations · ${st.entrants} unique entrants · ${st.completions} completed · ${st.empty} nobody joined · ${st.canceled} canceled · ${d.eligible} recent chatters${d.backoff ? ` · backing off ×${d.backoff + 1}` : ''}`;
+  }
+  const OUT_HELP = { ready: 'can play', blocked: 'needs a click in that page', silent: 'muted on purpose', off: 'sound off', unsupported: 'no Web Audio' };
+  function renderOutputs() {
+    const o = S.outputs;
+    $('audioOut').innerHTML = o.length
+      ? o.map((x) => `${esc(x.label)}: <b class="${x.state}">${x.state}</b> <span class="muted">(${OUT_HELP[x.state]})</span>`).join('<br>')
+        + (o.some((x) => x.state === 'ready') ? '' : '<br><span class="muted">No overlay can make sound right now.</span>')
+      : '<span class="muted">No overlay connected. Add the OBS Browser Source.</span>';
+    const a = $('frame').contentWindow?.chatAudio;
+    $('previewSound').textContent = `Preview sound: ${a && !a.silent ? a.state() : 'off'}`;
+  }
+  const flash = (msg) => { $('notice').textContent = msg; clearTimeout(flash.t); flash.t = setTimeout(() => $('notice').textContent = '', 5000); };
+  setInterval(() => S && renderDirector(), 1000);
 
   function renderStatus() { $('status').textContent = S.twitch; $('status').className = 'pill ' + S.twitch; }
   function renderUsers() {
@@ -217,8 +311,9 @@
   document.addEventListener('input', (e) => { const o = document.querySelector(`[data-out="${e.target.dataset.path}"]`); if (o) o.textContent = e.target.value; });
   document.addEventListener('click', (e) => {
     const d = e.target.dataset;
-    if (d.event) post('event', { name: d.event });
-    if (d.meme) post('meme', { value: d.meme });
+    const said = (r) => r.json().then((j) => j.reason && flash(`Not started: ${j.reason}`));
+    if (d.event) post('event', { name: d.event }).then(said);
+    if (d.meme) post('meme', { value: d.meme }).then(said);
     if (d.remove) post('remove', { login: d.remove });
     if (d.try) {
       const others = S.users.map((u) => u.login).filter((l) => l !== $('as').value.toLowerCase());
@@ -237,6 +332,17 @@
     e.target.value = '';
   };
   $('reload').onclick = () => $('frame').contentWindow.location.reload();
+  $('skip').onclick = () => post('skip');
+  $('pause').onclick = () => post('config', { director: { paused: !S.cfg.director.paused } });
+  $('stopfx').onclick = () => { post('stop'); flash('Effects stopped and automatic events paused. Press Resume when ready.'); };
+  $('testSound').onclick = () => post('sfx', { name: 'test' });
+  // Unlocking happens inside this click, which is what lets the preview frame start audio.
+  $('previewSound').onclick = () => {
+    const a = $('frame').contentWindow?.chatAudio;
+    if (!a) return;
+    a.setSilent(!a.silent);
+    a.unlock().then((st) => { if (st === 'ready') a.play('test'); renderOutputs(); });
+  };
   $('backdrop').onchange = (e) => { $('preview').className = 'preview ' + e.target.value; };
   $('obsurl').textContent = location.origin + '/overlay.html';
   $('copy').onclick = () => navigator.clipboard.writeText(location.origin + '/overlay.html').then(() => { $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy', 1200); });
@@ -275,10 +381,13 @@
 
   new EventSource('/events').onmessage = (e) => {
     const m = JSON.parse(e.data);
-    if (m.t === 'state') { S = m; build(); return; }
+    if (m.t === 'state') { S = m; S.offset = m.now - Date.now(); build(); return; }
     if (!S) return;
     if (m.t === 'config') { S.cfg = m.cfg; fill(); renderUsers(); renderMemes(); if (rec && rec.lang !== m.cfg.voice.lang) rec.stop(); } // onend restarts in the new language
     else if (m.t === 'status') { S.twitch = m.twitch; renderStatus(); }
+    else if (m.t === 'ev') { S.ev = m.ev; S.offset = m.now - Date.now(); renderDirector(); }
+    else if (m.t === 'director') { S.director = m.status; renderDirector(); }
+    else if (m.t === 'audio') { S.outputs = m.outputs; renderOutputs(); }
     else if (m.t === 'spawn') { S.users = S.users.filter((u) => u.login !== m.user.login).concat(m.user); renderUsers(); }
     else if (m.t === 'despawn') { S.users = S.users.filter((u) => u.login !== m.login); renderUsers(); }
   };

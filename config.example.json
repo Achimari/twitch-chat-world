@@ -47,6 +47,22 @@
       "enabled": true,
       "cooldown": 0
     },
+    "play": {
+      "enabled": true,
+      "cooldown": 0
+    },
+    "hide": {
+      "enabled": true,
+      "cooldown": 0
+    },
+    "bet": {
+      "enabled": true,
+      "cooldown": 0
+    },
+    "coins": {
+      "enabled": true,
+      "cooldown": 10
+    },
     "jump": {
       "enabled": true,
       "cooldown": 2
@@ -160,5 +176,30 @@
       "no way=shocked.gif",
       "...see public/commands.js VOICE_PRESETS"
     ]
+  },
+  "audio": {
+    "enabled": true,
+    "master": 0.25,
+    "action": 0.8,
+    "event": 0.9,
+    "media": 0.8,
+    "maxVoices": 4,
+    "perSecond": 6
+  },
+  "director": {
+    "enabled": true,
+    "sessionActive": false,
+    "paused": false,
+    "minMinutes": 4,
+    "maxMinutes": 7,
+    "minChatters": 1,
+    "recentMinutes": 10,
+    "intensity": "normal",
+    "enrollSeconds": 25,
+    "hideSeconds": 20,
+    "resultSeconds": 6,
+    "hudOffset": 0,
+    "betting": true,
+    "betSeconds": 30
   }
 }

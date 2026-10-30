@@ -1,0 +1,338 @@
+{
+  "name": "Chat World cartoon effects v1",
+  "source": "public/audio.js",
+  "source_sha256": "89d8eb8e73ca4e28b1cb25528367664adcce902412df3c992bd0bad01044c03a",
+  "sample_rate": 48000,
+  "channels": 1,
+  "bits_per_sample": 16,
+  "rendering": "Chrome OfflineAudioContext; seeded noise; peak/RMS gain limits; 4 ms edge fades",
+  "integrated_into_app": false,
+  "sounds": [
+    {
+      "id": "jump",
+      "file": "jump.wav",
+      "category": "action",
+      "seconds": 0.155,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -18.01
+    },
+    {
+      "id": "boing",
+      "file": "boing.wav",
+      "category": "action",
+      "seconds": 0.374,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -19.7
+    },
+    {
+      "id": "punch",
+      "file": "punch.wav",
+      "category": "action",
+      "seconds": 0.226,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -21.0
+    },
+    {
+      "id": "slap",
+      "file": "slap.wav",
+      "category": "action",
+      "seconds": 0.195,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -26.44
+    },
+    {
+      "id": "fart",
+      "file": "fart.wav",
+      "category": "action",
+      "seconds": 0.5,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -22.03
+    },
+    {
+      "id": "whoosh",
+      "file": "whoosh.wav",
+      "category": "action",
+      "seconds": 0.374,
+      "peak_dbfs": -9.14,
+      "rms_dbfs": -28.81
+    },
+    {
+      "id": "thud",
+      "file": "thud.wav",
+      "category": "action",
+      "seconds": 0.234,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -19.84
+    },
+    {
+      "id": "rocket",
+      "file": "rocket.wav",
+      "category": "action",
+      "seconds": 0.805,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -24.26
+    },
+    {
+      "id": "sneezeUp",
+      "file": "sneezeUp.wav",
+      "category": "action",
+      "seconds": 0.335,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -19.01
+    },
+    {
+      "id": "sneeze",
+      "file": "sneeze.wav",
+      "category": "action",
+      "seconds": 0.355,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -24.53
+    },
+    {
+      "id": "zapCast",
+      "file": "zapCast.wav",
+      "category": "action",
+      "seconds": 0.195,
+      "peak_dbfs": -6.71,
+      "rms_dbfs": -22.82
+    },
+    {
+      "id": "zap",
+      "file": "zap.wav",
+      "category": "action",
+      "seconds": 0.251,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -24.32
+    },
+    {
+      "id": "fireCast",
+      "file": "fireCast.wav",
+      "category": "action",
+      "seconds": 0.263,
+      "peak_dbfs": -14.05,
+      "rms_dbfs": -32.42
+    },
+    {
+      "id": "fireHit",
+      "file": "fireHit.wav",
+      "category": "action",
+      "seconds": 0.392,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -22.72
+    },
+    {
+      "id": "boom",
+      "file": "boom.wav",
+      "category": "action",
+      "seconds": 0.589,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -24.12
+    },
+    {
+      "id": "meteor",
+      "file": "meteor.wav",
+      "category": "event",
+      "seconds": 0.359,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -23.94
+    },
+    {
+      "id": "brawl",
+      "file": "brawl.wav",
+      "category": "action",
+      "seconds": 0.554,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -21.95
+    },
+    {
+      "id": "tick",
+      "file": "tick.wav",
+      "category": "action",
+      "seconds": 0.115,
+      "peak_dbfs": -4.83,
+      "rms_dbfs": -20.41
+    },
+    {
+      "id": "go",
+      "file": "go.wav",
+      "category": "action",
+      "seconds": 0.225,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -25.42
+    },
+    {
+      "id": "sparkle",
+      "file": "sparkle.wav",
+      "category": "action",
+      "seconds": 0.275,
+      "peak_dbfs": -6.32,
+      "rms_dbfs": -19.73
+    },
+    {
+      "id": "clap",
+      "file": "clap.wav",
+      "category": "action",
+      "seconds": 0.153,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -23.39
+    },
+    {
+      "id": "win",
+      "file": "win.wav",
+      "category": "event",
+      "seconds": 0.484,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -19.12
+    },
+    {
+      "id": "fail",
+      "file": "fail.wav",
+      "category": "event",
+      "seconds": 0.772,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -21.86
+    },
+    {
+      "id": "stinger",
+      "file": "stinger.wav",
+      "category": "event",
+      "seconds": 0.614,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -21.47
+    },
+    {
+      "id": "alarm",
+      "file": "alarm.wav",
+      "category": "event",
+      "seconds": 0.514,
+      "peak_dbfs": -6.65,
+      "rms_dbfs": -20.49
+    },
+    {
+      "id": "join",
+      "file": "join.wav",
+      "category": "event",
+      "seconds": 0.135,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -20.58
+    },
+    {
+      "id": "hide",
+      "file": "hide.wav",
+      "category": "event",
+      "seconds": 0.173,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -20.8
+    },
+    {
+      "id": "beam",
+      "file": "beam.wav",
+      "category": "event",
+      "seconds": 1.254,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -18.81
+    },
+    {
+      "id": "coin",
+      "file": "coin.wav",
+      "category": "event",
+      "seconds": 0.194,
+      "peak_dbfs": -6.69,
+      "rms_dbfs": -20.87
+    },
+    {
+      "id": "cash",
+      "file": "cash.wav",
+      "category": "event",
+      "seconds": 0.375,
+      "peak_dbfs": -8.18,
+      "rms_dbfs": -20.68
+    },
+    {
+      "id": "squeak",
+      "file": "squeak.wav",
+      "category": "event",
+      "seconds": 0.253,
+      "peak_dbfs": -6.48,
+      "rms_dbfs": -20.48
+    },
+    {
+      "id": "test",
+      "file": "test.wav",
+      "category": "event",
+      "seconds": 0.484,
+      "peak_dbfs": -3.74,
+      "rms_dbfs": -19.12
+    }
+  ],
+  "preview_cues": [
+    {
+      "id": "jump",
+      "starts_at": 0.3
+    },
+    {
+      "id": "boing",
+      "starts_at": 1.105
+    },
+    {
+      "id": "slap",
+      "starts_at": 2.129
+    },
+    {
+      "id": "fart",
+      "starts_at": 2.974
+    },
+    {
+      "id": "whoosh",
+      "starts_at": 4.124
+    },
+    {
+      "id": "rocket",
+      "starts_at": 5.148
+    },
+    {
+      "id": "sneeze",
+      "starts_at": 6.603
+    },
+    {
+      "id": "zap",
+      "starts_at": 7.608
+    },
+    {
+      "id": "boom",
+      "starts_at": 8.509
+    },
+    {
+      "id": "sparkle",
+      "starts_at": 9.748
+    },
+    {
+      "id": "beam",
+      "starts_at": 10.672
+    },
+    {
+      "id": "coin",
+      "starts_at": 12.577
+    },
+    {
+      "id": "squeak",
+      "starts_at": 13.421
+    },
+    {
+      "id": "stinger",
+      "starts_at": 14.325
+    },
+    {
+      "id": "win",
+      "starts_at": 15.589
+    },
+    {
+      "id": "cash",
+      "starts_at": 16.723
+    },
+    {
+      "id": "fail",
+      "starts_at": 17.747
+    }
+  ]
+}

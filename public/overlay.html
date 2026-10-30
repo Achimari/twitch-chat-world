@@ -11,6 +11,7 @@
     font: 700 120px "Pixelify Sans", Impact, sans-serif; text-transform: uppercase; color: #fff; white-space: nowrap;
     -webkit-text-stroke: 6px #000; paint-order: stroke fill; text-shadow: 0 8px 0 rgba(0,0,0,.35); }
   .meme img, .meme video { max-width: 640px; max-height: 480px; display: block; }
+  #hint { position: fixed; left: 12px; top: 12px; font: 600 18px system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.7); padding: 8px 12px; border-radius: 8px; display: none; }
   @keyframes pop {
     0% { transform: translate(-50%, -50%) scale(0) rotate(-12deg); }
     12% { transform: translate(-50%, -50%) scale(1.15) rotate(4deg); }
@@ -21,24 +22,48 @@
 </head>
 <body>
 <canvas width="1920" height="1080"></canvas>
+<div id="hint">Sound is blocked in this tab: click anywhere to enable it.</div>
 <script type="module">
   import { World } from './world.js';
+  import { AudioManager } from './audio.js';
   const world = new World(document.querySelector('canvas'));
   document.fonts.load('16px "Pixelify Sans"').then(() => world.setConfig({}), () => {}); // re-render labels once the font is in
 
-  // EventSource reconnects by itself; the server re-sends the full state on every (re)connect.
-  // Voice memes. The dashboard preview is an iframe: keep it silent so you don't hear every sound twice.
-  const muted = window !== window.top;
+  // Sound. The dashboard preview is an iframe and stays silent unless you press "Preview sound" there, so you
+  // don't hear everything twice. Add ?silent=1 to any extra Browser Source; only one source should make sound.
+  const preview = window !== window.top;
+  const audio = window.chatAudio = new AudioManager({ silent: preview || new URLSearchParams(location.search).has('silent') });
+  world.sfx = (name) => audio.play(name);
+  // A normal browser tab needs one click/key before it may play sound. OBS allows it without one.
+  const unlock = () => audio.unlock();
+  addEventListener('pointerdown', unlock); addEventListener('keydown', unlock);
+
+  // Report honestly whether this page can make sound, so the dashboard can show it.
+  const id = Math.random().toString(36).slice(2, 10);
+  const label = window.obsstudio ? 'OBS' : preview ? 'Dashboard preview' : 'Browser tab';
+  let reported = '';
+  function report(force) {
+    const state = audio.state();
+    document.getElementById('hint').style.display = state === 'blocked' && !preview && !window.obsstudio ? 'block' : 'none';
+    if (!force && state === reported) return;
+    reported = state;
+    fetch('/api/audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, label, state }) }).catch(() => {});
+  }
+  audio.onchange = () => report();
+  setInterval(() => report(true), 20000);
+
+  // Voice memes. Their audio goes through the same mute/volume/voice limits as everything else.
   function meme({ value, roll }) {
     const file = /^[\w.-]+\.(png|gif|jpe?g|webp|mp4|webm|mp3)$/i.test(value) ? '/memes/' + value : null;
-    if (file?.endsWith('.mp3')) { if (!muted) new Audio(file).play().catch(() => {}); return; }
+    if (file?.endsWith('.mp3')) { audio.media(new Audio(file)); return; }
     const el = document.createElement('div');
     el.className = 'meme';
     el.style.left = 25 + roll * 50 + '%';
     el.style.top = 30 + ((roll * 7) % 1) * 25 + '%';
     if (!file) el.textContent = value;
     else if (/\.(mp4|webm)$/i.test(file)) {
-      const v = Object.assign(document.createElement('video'), { src: file, autoplay: true, muted, playsInline: true });
+      const v = Object.assign(document.createElement('video'), { src: file, autoplay: true, muted: true, playsInline: true });
+      audio.media(v); // unmutes only if this page may make sound and a voice is free
       v.onloadedmetadata = () => { el.style.animationDuration = Math.max(4, v.duration + 0.5) + 's'; };
       el.append(v);
     } else el.append(Object.assign(document.createElement('img'), { src: file }));
@@ -48,19 +73,23 @@
 
   world.onMeme = (value, roll) => meme({ value, roll }); // !meme chat command
 
+  // EventSource reconnects by itself; the server re-sends the full state (including any running activity) every time.
   new EventSource('/events').onmessage = (e) => {
     try {
       const m = JSON.parse(e.data);
+      if (m.t === 'state' || m.t === 'config') audio.setConfig(m.cfg.audio);
+      if (m.t === 'state') report(true);
+      if (m.t === 'stop') { audio.stopAll(); for (const el of document.querySelectorAll('.meme')) el.remove(); }
       if (m.t === 'meme') meme(m); else world.handle(m);
     } catch (err) { console.error(err); }
   };
 
   let last = performance.now();
   requestAnimationFrame(function frame(now) {
+    requestAnimationFrame(frame); // schedule first: one bad frame must never freeze the overlay
     world.update(Math.min(0.05, (now - last) / 1000));
     last = now;
     world.draw();
-    requestAnimationFrame(frame);
   });
 </script>
 </body>
